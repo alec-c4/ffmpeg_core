@@ -19,7 +19,7 @@ RSpec.configure do |config|
   config.fixtures_path = File.expand_path("fixtures/files", __dir__)
 
   # Reset configuration after each test
-  config.after(:each) do
+  config.after do
     FFmpegCore.reset_configuration!
   end
 end

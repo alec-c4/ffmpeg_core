@@ -68,6 +68,7 @@ module FFmpegCore
 
     def resolution
       return nil unless width && height
+
       "#{width}x#{height}"
     end
 

@@ -1,8 +1,36 @@
+require:
+  - standard
+
+plugins:
+  - rubocop-rspec
+  - rubocop-performance
+
+inherit_gem:
+  standard: config/base.yml
+
 AllCops:
   TargetRubyVersion: 3.2
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - bin/**/*
+    - vendor/**/*
 
-Style/StringLiterals:
-  EnforcedStyle: double_quotes
+RSpec:
+  Enabled: true
 
-Style/StringLiteralsInInterpolation:
-  EnforcedStyle: double_quotes
+Performance:
+  Enabled: true
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+# FFmpegCore acronym causes path mismatch (expects f_fmpeg_core)
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/MultipleDescribes:
+  Enabled: false

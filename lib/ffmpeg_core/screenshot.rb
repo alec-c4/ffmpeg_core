@@ -36,9 +36,7 @@ module FFmpegCore
       cmd = [FFmpegCore.configuration.ffmpeg_binary]
 
       # Seek to timestamp (before input for faster processing)
-      if options[:seek_time]
-        cmd += ["-ss", options[:seek_time].to_s]
-      end
+      cmd += ["-ss", options[:seek_time].to_s] if options[:seek_time]
 
       # Input file
       cmd += ["-i", input_path]
@@ -47,9 +45,7 @@ module FFmpegCore
       cmd += ["-vframes", "1"]
 
       # Resolution
-      if options[:resolution]
-        cmd += ["-s", options[:resolution]]
-      end
+      cmd += ["-s", options[:resolution]] if options[:resolution]
 
       # Quality (2-31, lower is better, default: 2)
       quality = options[:quality] || 2

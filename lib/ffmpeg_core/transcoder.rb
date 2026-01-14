@@ -40,39 +40,25 @@ module FFmpegCore
       cmd += ["-i", input_path]
 
       # Video codec
-      if options[:video_codec]
-        cmd += ["-c:v", options[:video_codec]]
-      end
+      cmd += ["-c:v", options[:video_codec]] if options[:video_codec]
 
       # Audio codec
-      if options[:audio_codec]
-        cmd += ["-c:a", options[:audio_codec]]
-      end
+      cmd += ["-c:a", options[:audio_codec]] if options[:audio_codec]
 
       # Video bitrate
-      if options[:video_bitrate]
-        cmd += ["-b:v", normalize_bitrate(options[:video_bitrate])]
-      end
+      cmd += ["-b:v", normalize_bitrate(options[:video_bitrate])] if options[:video_bitrate]
 
       # Audio bitrate
-      if options[:audio_bitrate]
-        cmd += ["-b:a", normalize_bitrate(options[:audio_bitrate])]
-      end
+      cmd += ["-b:a", normalize_bitrate(options[:audio_bitrate])] if options[:audio_bitrate]
 
       # Resolution
-      if options[:resolution]
-        cmd += ["-s", options[:resolution]]
-      end
+      cmd += ["-s", options[:resolution]] if options[:resolution]
 
       # Frame rate
-      if options[:frame_rate]
-        cmd += ["-r", options[:frame_rate].to_s]
-      end
+      cmd += ["-r", options[:frame_rate].to_s] if options[:frame_rate]
 
       # Custom options (array of strings)
-      if options[:custom]
-        cmd += options[:custom]
-      end
+      cmd += options[:custom] if options[:custom]
 
       # Overwrite output file
       cmd += ["-y"]
@@ -89,6 +75,7 @@ module FFmpegCore
       # 1000 -> "1000k"
       # "1M" -> "1M"
       return bitrate.to_s if bitrate.to_s.match?(/\d+[kKmM]/)
+
       "#{bitrate}k"
     end
 

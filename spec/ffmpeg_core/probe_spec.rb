@@ -13,9 +13,9 @@ RSpec.describe FFmpegCore::Probe do
 
     context "with non-existent file" do
       it "raises InvalidInputError" do
-        expect {
+        expect do
           described_class.new("/nonexistent/video.mp4")
-        }.to raise_error(FFmpegCore::InvalidInputError, /does not exist/)
+        end.to raise_error(FFmpegCore::InvalidInputError, /does not exist/)
       end
     end
   end
