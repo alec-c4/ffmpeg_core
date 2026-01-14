@@ -1,39 +1,152 @@
-# FfmpegCore
+# FFmpegCore
 
-TODO: Delete this and the text below, and describe your gem
+Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ffmpeg_core`. To experiment with that code, run `bin/console` for an interactive prompt.
+## Features
+
+- Modern Ruby 3+ conventions
+- Zero runtime dependencies
+- Proper error handling with detailed context
+- Thread-safe configuration
+- Simple, intuitive API
+
+## Requirements
+
+- Ruby 3.2+
+- FFmpeg installed (`brew install ffmpeg` on macOS)
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Add to your Gemfile:
 
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "ffmpeg_core"
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Then run:
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle install
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+### Basic Usage
+
+```ruby
+require "ffmpeg_core"
+
+# Load a video file
+movie = FFmpegCore::Movie.new("input.mp4")
+
+# Get metadata
+movie.duration      # => 120.5 (seconds)
+movie.resolution    # => "1920x1080"
+movie.video_codec   # => "h264"
+movie.audio_codec   # => "aac"
+movie.frame_rate    # => 29.97
+movie.bitrate       # => 5000 (kb/s)
+movie.valid?        # => true
+```
+
+### Transcoding
+
+```ruby
+movie = FFmpegCore::Movie.new("input.mp4")
+
+# Basic transcoding
+movie.transcode("output.mp4", video_codec: "libx264")
+
+# With options
+movie.transcode("output.mp4", {
+  video_codec: "libx264",
+  audio_codec: "aac",
+  video_bitrate: "1000k",
+  audio_bitrate: "128k",
+  resolution: "1280x720",
+  frame_rate: 30
+})
+
+# Custom FFmpeg flags
+movie.transcode("output.mp4", {
+  video_codec: "libx264",
+  custom: ["-preset", "fast", "-crf", "23"]
+})
+```
+
+### Screenshots
+
+```ruby
+movie = FFmpegCore::Movie.new("input.mp4")
+
+# Extract screenshot at specific time
+movie.screenshot("thumbnail.jpg", seek_time: 5)
+
+# With resolution
+movie.screenshot("thumbnail.jpg", {
+  seek_time: 10,
+  resolution: "640x360",
+  quality: 2  # 2-31, lower is better
+})
+```
+
+### Configuration
+
+```ruby
+FFmpegCore.configure do |config|
+  config.ffmpeg_binary = "/usr/local/bin/ffmpeg"
+  config.ffprobe_binary = "/usr/local/bin/ffprobe"
+  config.timeout = 60
+end
+```
+
+## Error Handling
+
+FFmpegCore provides specific error classes for different failure scenarios:
+
+```ruby
+begin
+  movie = FFmpegCore::Movie.new("input.mp4")
+  movie.transcode("output.mp4", video_codec: "libx264")
+rescue FFmpegCore::InvalidInputError => e
+  # File doesn't exist or is not readable
+  puts "Input error: #{e.message}"
+rescue FFmpegCore::TranscodingError => e
+  # FFmpeg transcoding failed
+  puts "Transcoding failed: #{e.message}"
+  puts "Command: #{e.command}"
+  puts "Exit status: #{e.exit_status}"
+  puts "Stderr: #{e.stderr}"
+rescue FFmpegCore::BinaryNotFoundError => e
+  # FFmpeg not installed
+  puts "FFmpeg not found: #{e.message}"
+end
+```
+
+### Error Classes
+
+| Error | Description |
+|-------|-------------|
+| `FFmpegCore::Error` | Base error class |
+| `FFmpegCore::BinaryNotFoundError` | FFmpeg/FFprobe not found |
+| `FFmpegCore::InvalidInputError` | Input file doesn't exist or unreadable |
+| `FFmpegCore::ProbeError` | Failed to extract metadata |
+| `FFmpegCore::TranscodingError` | FFmpeg transcoding failed |
+| `FFmpegCore::ScreenshotError` | Screenshot extraction failed |
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```bash
+# Install dependencies
+bundle install
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+# Run tests
+bundle exec rspec
 
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ffmpeg_core.
+# Run linter
+bundle exec rubocop
+```
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+MIT License. See [LICENSE.txt](LICENSE.txt) for details.
