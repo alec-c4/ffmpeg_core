@@ -27,7 +27,7 @@ module FFmpegCore
   class OutputError < Error; end
 
   # Raised when probe fails to extract metadata
-  class ProbeError < Error; end
+  class ProbeError < ExecutionError; end
 
   # Raised when transcoding fails
   class TranscodingError < ExecutionError; end

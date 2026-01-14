@@ -14,16 +14,26 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - '4.0.0'
+          - '3.2'
+          - '3.3'
+          - '3.4'
+          - '4.0'
 
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+
       - name: Run the default task
         run: bundle exec rake
