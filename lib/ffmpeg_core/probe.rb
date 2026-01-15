@@ -72,6 +72,25 @@ module FFmpegCore
       "#{width}x#{height}"
     end
 
+    def rotation
+      return nil unless video_stream
+
+      # Try to find rotation in tags (common in MP4/MOV)
+      tags = video_stream.fetch("tags", {})
+      return tags["rotate"].to_i if tags["rotate"]
+
+      # Default to 0 if not found
+      0
+    end
+
+    def aspect_ratio
+      video_stream&.dig("display_aspect_ratio")
+    end
+
+    def audio_streams
+      streams.select { |s| s["codec_type"] == "audio" }
+    end
+
     def valid?
       !video_stream.nil?
     end

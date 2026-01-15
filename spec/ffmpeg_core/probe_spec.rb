@@ -41,5 +41,39 @@ RSpec.describe FFmpegCore::Probe do
     it "validates video" do
       expect(probe.valid?).to be true
     end
+
+    context "with complex metadata" do
+      let(:complex_json) do
+        {
+          "streams" => [
+            {
+              "codec_type" => "video",
+              "tags" => {"rotate" => "90"},
+              "display_aspect_ratio" => "16:9"
+            },
+            {"codec_type" => "audio", "index" => 1},
+            {"codec_type" => "audio", "index" => 2}
+          ]
+        }.to_json
+      end
+      let(:probe_complex) { described_class.new(video_path) }
+
+      before do
+        # Mock Open3 to return our complex JSON instead of running ffprobe
+        allow(Open3).to receive(:capture3).and_return([complex_json, "", double(success?: true)])
+      end
+
+      it "extracts rotation" do
+        expect(probe_complex.rotation).to eq(90)
+      end
+
+      it "extracts aspect ratio" do
+        expect(probe_complex.aspect_ratio).to eq("16:9")
+      end
+
+      it "finds multiple audio streams" do
+        expect(probe_complex.audio_streams.count).to eq(2)
+      end
+    end
   end
 end

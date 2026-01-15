@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-01-15
+
+### Added
+
+- Real-time progress reporting in `Movie#transcode` via block yielding (0.0 to 1.0)
+- Support for video and audio filters (`video_filter`, `audio_filter`)
+- Support for quality settings (`preset`, `crf`)
+- Enhanced metadata in `Probe`: added `rotation`, `aspect_ratio`, and `audio_streams`
+- Comprehensive modular test suite for `Transcoder` and `Screenshot`
+
+### Changed
+
+- `Transcoder` now uses `Open3.popen3` for non-blocking execution and progress parsing
+- Improved RSpec testing style (using `have_received` spies)
 
 ## [0.1.1] - 2026-01-14
 

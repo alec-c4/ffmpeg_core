@@ -27,10 +27,14 @@ module FFmpegCore
     # @option options [String] :resolution Resolution (e.g., "1280x720")
     # @option options [Integer, Float] :frame_rate Frame rate (e.g., 30)
     # @option options [Array<String>] :custom Custom FFmpeg flags
+    # @yield [Float] Progress ratio (0.0 to 1.0)
     # @return [String] Path to transcoded file
-    def transcode(output_path, options = {})
+    def transcode(output_path, options = {}, &block)
+      # Inject duration for progress calculation if known
+      options[:duration] ||= duration
+
       transcoder = Transcoder.new(path, output_path, options)
-      transcoder.run
+      transcoder.run(&block)
     end
 
     # Extract screenshot from video

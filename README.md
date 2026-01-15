@@ -2,10 +2,15 @@
 
 Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 
+[![Gem Version](https://badge.fury.io/rb/ffmpeg_core.svg)](https://badge.fury.io/rb/ffmpeg_core)
+[![Build Status](https://github.com/alec-c4/ffmpeg_core/actions/workflows/main.yml/badge.svg)](https://github.com/alec-c4/ffmpeg_core/actions)
+
 ## Features
 
 - Modern Ruby 3+ conventions
 - Zero runtime dependencies
+- **Real-time progress reporting**
+- **Support for video/audio filters and quality presets**
 - Proper error handling with detailed context
 - Thread-safe configuration
 - Simple, intuitive API
@@ -46,6 +51,8 @@ movie.video_codec   # => "h264"
 movie.audio_codec   # => "aac"
 movie.frame_rate    # => 29.97
 movie.bitrate       # => 5000 (kb/s)
+movie.rotation      # => 90 (degrees)
+movie.aspect_ratio  # => "16:9"
 movie.valid?        # => true
 ```
 
@@ -54,23 +61,20 @@ movie.valid?        # => true
 ```ruby
 movie = FFmpegCore::Movie.new("input.mp4")
 
-# Basic transcoding
-movie.transcode("output.mp4", video_codec: "libx264")
+# Basic transcoding with progress
+movie.transcode("output.mp4", video_codec: "libx264") do |progress|
+  puts "Progress: #{(progress * 100).round(2)}%"
+end
 
-# With options
+# Advanced options (Filters & Quality)
 movie.transcode("output.mp4", {
   video_codec: "libx264",
   audio_codec: "aac",
   video_bitrate: "1000k",
-  audio_bitrate: "128k",
   resolution: "1280x720",
-  frame_rate: 30
-})
-
-# Custom FFmpeg flags
-movie.transcode("output.mp4", {
-  video_codec: "libx264",
-  custom: ["-preset", "fast", "-crf", "23"]
+  video_filter: "scale=1280:-1,transpose=1", # Resize and rotate
+  preset: "slow",      # ffmpeg preset (ultrafast, fast, medium, slow, etc.)
+  crf: 23              # Constant Rate Factor (0-51)
 })
 ```
 
@@ -125,14 +129,14 @@ end
 
 ### Error Classes
 
-| Error | Description |
-|-------|-------------|
-| `FFmpegCore::Error` | Base error class |
-| `FFmpegCore::BinaryNotFoundError` | FFmpeg/FFprobe not found |
-| `FFmpegCore::InvalidInputError` | Input file doesn't exist or unreadable |
-| `FFmpegCore::ProbeError` | Failed to extract metadata |
-| `FFmpegCore::TranscodingError` | FFmpeg transcoding failed |
-| `FFmpegCore::ScreenshotError` | Screenshot extraction failed |
+| Error                             | Description                            |
+| --------------------------------- | -------------------------------------- |
+| `FFmpegCore::Error`               | Base error class                       |
+| `FFmpegCore::BinaryNotFoundError` | FFmpeg/FFprobe not found               |
+| `FFmpegCore::InvalidInputError`   | Input file doesn't exist or unreadable |
+| `FFmpegCore::ProbeError`          | Failed to extract metadata             |
+| `FFmpegCore::TranscodingError`    | FFmpeg transcoding failed              |
+| `FFmpegCore::ScreenshotError`     | Screenshot extraction failed           |
 
 ## Development
 
