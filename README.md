@@ -47,13 +47,17 @@ movie = FFmpegCore::Movie.new("input.mp4")
 # Get metadata
 movie.duration      # => 120.5 (seconds)
 movie.resolution    # => "1920x1080"
+movie.width         # => 1920
+movie.height        # => 1080
 movie.video_codec   # => "h264"
 movie.audio_codec   # => "aac"
 movie.frame_rate    # => 29.97
 movie.bitrate       # => 5000 (kb/s)
-movie.rotation      # => 90 (degrees)
-movie.aspect_ratio  # => "16:9"
 movie.valid?        # => true
+
+# Access detailed metadata via probe
+movie.probe.rotation      # => 90 (degrees)
+movie.probe.aspect_ratio  # => "16:9"
 ```
 
 ### Transcoding
@@ -71,10 +75,47 @@ movie.transcode("output.mp4", {
   video_codec: "libx264",
   audio_codec: "aac",
   video_bitrate: "1000k",
+  audio_bitrate: "128k",
   resolution: "1280x720",
   video_filter: "scale=1280:-1,transpose=1", # Resize and rotate
+  audio_filter: "volume=0.5",                # Reduce volume
   preset: "slow",      # ffmpeg preset (ultrafast, fast, medium, slow, etc.)
-  crf: 23              # Constant Rate Factor (0-51)
+  crf: 23,             # Constant Rate Factor (0-51)
+  custom: %w[-map 0:v -map 0:a] # Custom FFmpeg flags
+})
+```
+
+### Using Filters
+
+FFmpegCore supports raw FFmpeg filter strings for both video (`video_filter` or `-vf`) and audio (`audio_filter` or `-af`).
+
+**Common Video Filters:**
+
+```ruby
+movie.transcode("output.mp4", {
+  # Scale to width 1280, keep aspect ratio
+  video_filter: "scale=1280:-1",
+
+  # Crop 100x100 starting at position (10,10)
+  video_filter: "crop=100:100:10:10",
+
+  # Rotate 90 degrees clockwise
+  video_filter: "transpose=1",
+
+  # Chain multiple filters (Scale then Rotate)
+  video_filter: "scale=1280:-1,transpose=1"
+})
+```
+
+**Common Audio Filters:**
+
+```ruby
+movie.transcode("output.mp4", {
+  # Increase volume by 50%
+  audio_filter: "volume=1.5",
+
+  # Fade in first 5 seconds
+  audio_filter: "afade=t=in:ss=0:d=5"
 })
 ```
 
@@ -86,7 +127,7 @@ movie = FFmpegCore::Movie.new("input.mp4")
 # Extract screenshot at specific time
 movie.screenshot("thumbnail.jpg", seek_time: 5)
 
-# With resolution
+# With resolution and quality
 movie.screenshot("thumbnail.jpg", {
   seek_time: 10,
   resolution: "640x360",
@@ -106,7 +147,7 @@ end
 
 ## Error Handling
 
-FFmpegCore provides specific error classes for different failure scenarios:
+FFmpegCore provides specific error classes for different failure scenarios. All execution errors (transcoding, probing, screenshots) inherit from `FFmpegCore::ExecutionError`, which provides access to the command, exit status, and stderr output.
 
 ```ruby
 begin
@@ -115,9 +156,9 @@ begin
 rescue FFmpegCore::InvalidInputError => e
   # File doesn't exist or is not readable
   puts "Input error: #{e.message}"
-rescue FFmpegCore::TranscodingError => e
-  # FFmpeg transcoding failed
-  puts "Transcoding failed: #{e.message}"
+rescue FFmpegCore::ExecutionError => e
+  # Covers TranscodingError, ProbeError, and ScreenshotError
+  puts "Execution failed: #{e.message}"
   puts "Command: #{e.command}"
   puts "Exit status: #{e.exit_status}"
   puts "Stderr: #{e.stderr}"
@@ -129,14 +170,16 @@ end
 
 ### Error Classes
 
-| Error                             | Description                            |
-| --------------------------------- | -------------------------------------- |
-| `FFmpegCore::Error`               | Base error class                       |
-| `FFmpegCore::BinaryNotFoundError` | FFmpeg/FFprobe not found               |
-| `FFmpegCore::InvalidInputError`   | Input file doesn't exist or unreadable |
-| `FFmpegCore::ProbeError`          | Failed to extract metadata             |
-| `FFmpegCore::TranscodingError`    | FFmpeg transcoding failed              |
-| `FFmpegCore::ScreenshotError`     | Screenshot extraction failed           |
+| Error                             | Description                            | Parent |
+| --------------------------------- | -------------------------------------- | ------ |
+| `FFmpegCore::Error`               | Base error class                       | StandardError |
+| `FFmpegCore::BinaryNotFoundError` | FFmpeg/FFprobe not found               | Error |
+| `FFmpegCore::InvalidInputError`   | Input file doesn't exist or unreadable | Error |
+| `FFmpegCore::OutputError`         | Output file cannot be written          | Error |
+| `FFmpegCore::ExecutionError`      | Base for command execution errors      | Error |
+| `FFmpegCore::ProbeError`          | Failed to extract metadata             | ExecutionError |
+| `FFmpegCore::TranscodingError`    | FFmpeg transcoding failed              | ExecutionError |
+| `FFmpegCore::ScreenshotError`     | Screenshot extraction failed           | ExecutionError |
 
 ## Development
 
