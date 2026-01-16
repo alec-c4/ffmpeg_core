@@ -15,6 +15,20 @@ RSpec.describe FFmpegCore::Transcoder do
       allow(FFmpegCore.configuration).to receive(:ffmpeg_binary).and_return("ffmpeg")
     end
 
+    context "with remote url" do
+      let(:transcoder) { described_class.new("http://example.com/video.mp4", output_path, options) }
+
+      it "does not check for file existence" do
+        transcoder.run
+        expect(Open3).to have_received(:popen3).with(
+          "ffmpeg",
+          "-i", "http://example.com/video.mp4",
+          "-y",
+          output_path.to_s
+        )
+      end
+    end
+
     context "when building command" do
       it "builds basic command" do
         transcoder.run
@@ -34,6 +48,7 @@ RSpec.describe FFmpegCore::Transcoder do
           audio_codec: "aac",
           video_bitrate: "1000k",
           resolution: "1280x720",
+          crop: { width: 100, height: 100, x: 10, y: 10 },
           video_filter: "scale=1280:-1",
           preset: "slow",
           crf: 23
@@ -49,7 +64,7 @@ RSpec.describe FFmpegCore::Transcoder do
           "-c:a", "aac",
           "-b:v", "1000k",
           "-s", "1280x720",
-          "-vf", "scale=1280:-1",
+          "-vf", "scale=1280:-1,crop=100:100:10:10",
           "-preset", "slow",
           "-crf", "23",
           "-y",

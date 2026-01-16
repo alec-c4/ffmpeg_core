@@ -11,6 +11,18 @@ RSpec.describe FFmpegCore::Probe do
       end
     end
 
+    context "with remote url" do
+      before do
+        allow(Open3).to receive(:capture3).and_return(["{}", "", double(success?: true)])
+      end
+
+      it "does not check for file existence" do
+        expect do
+          described_class.new("http://example.com/video.mp4")
+        end.not_to raise_error
+      end
+    end
+
     context "with non-existent file" do
       it "raises InvalidInputError" do
         expect do
@@ -48,7 +60,12 @@ RSpec.describe FFmpegCore::Probe do
           "streams" => [
             {
               "codec_type" => "video",
+              "width" => 1920,
+              "height" => 1080,
               "tags" => {"rotate" => "90"},
+              "side_data_list" => [{"rotation" => -90}],
+              "profile" => "High",
+              "level" => 51,
               "display_aspect_ratio" => "16:9"
             },
             {"codec_type" => "audio", "index" => 1},
@@ -65,6 +82,17 @@ RSpec.describe FFmpegCore::Probe do
 
       it "extracts rotation" do
         expect(probe_complex.rotation).to eq(90)
+      end
+      
+      it "swaps width and height based on rotation" do
+        # Rotation is 90, so width (1920) becomes height, height (1080) becomes width
+        expect(probe_complex.width).to eq(1080)
+        expect(probe_complex.height).to eq(1920)
+      end
+      
+      it "extracts profile and level" do
+        expect(probe_complex.video_profile).to eq("High")
+        expect(probe_complex.video_level).to eq(51)
       end
 
       it "extracts aspect ratio" do

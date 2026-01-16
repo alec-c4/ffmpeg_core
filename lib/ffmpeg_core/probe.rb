@@ -39,16 +39,32 @@ module FFmpegCore
       video_stream&.dig("codec_name")
     end
 
+    def video_profile
+      video_stream&.dig("profile")
+    end
+
+    def video_level
+      video_stream&.dig("level")
+    end
+
     def audio_codec
       audio_stream&.dig("codec_name")
     end
 
     def width
-      video_stream&.dig("width")
+      val = video_stream&.dig("width")
+      return val unless val
+      return val if (rotation || 0) % 180 == 0
+
+      video_stream&.dig("height")
     end
 
     def height
-      video_stream&.dig("height")
+      val = video_stream&.dig("height")
+      return val unless val
+      return val if (rotation || 0) % 180 == 0
+
+      video_stream&.dig("width")
     end
 
     def frame_rate
@@ -79,6 +95,10 @@ module FFmpegCore
       tags = video_stream.fetch("tags", {})
       return tags["rotate"].to_i if tags["rotate"]
 
+      # Try side_data_list (common in some newer formats)
+      side_data = video_stream.fetch("side_data_list", []).find { |sd| sd.key?("rotation") }
+      return side_data["rotation"].to_i if side_data
+
       # Default to 0 if not found
       0
     end
@@ -102,6 +122,8 @@ module FFmpegCore
     end
 
     def validate_file!
+      return if path =~ %r{^(https?|rtmp|rtsp)://}
+
       raise InvalidInputError, "File does not exist: #{path}" unless File.exist?(path)
       raise InvalidInputError, "File is not readable: #{path}" unless File.readable?(path)
     end

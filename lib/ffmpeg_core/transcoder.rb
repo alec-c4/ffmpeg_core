@@ -25,6 +25,8 @@ module FFmpegCore
     private
 
     def validate_input!
+      return if input_path =~ %r{^(https?|rtmp|rtsp)://}
+
       raise InvalidInputError, "Input file does not exist: #{input_path}" unless File.exist?(input_path)
     end
 
@@ -57,8 +59,16 @@ module FFmpegCore
       # Frame rate
       cmd += ["-r", options[:frame_rate].to_s] if options[:frame_rate]
 
-      # Video filter
-      cmd += ["-vf", options[:video_filter]] if options[:video_filter]
+      # Video filters
+      video_filters = []
+      video_filters << options[:video_filter] if options[:video_filter]
+      
+      if options[:crop]
+        crop = options[:crop]
+        video_filters << "crop=#{crop[:width]}:#{crop[:height]}:#{crop[:x]}:#{crop[:y]}"
+      end
+      
+      cmd += ["-vf", video_filters.join(",")] unless video_filters.empty?
 
       # Audio filter
       cmd += ["-af", options[:audio_filter]] if options[:audio_filter]
