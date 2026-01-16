@@ -11,6 +11,7 @@ Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 - Zero runtime dependencies
 - **Real-time progress reporting**
 - **Support for video/audio filters and quality presets**
+- **Remote input support (HTTP/HTTPS/RTMP/RTSP)**
 - Proper error handling with detailed context
 - Thread-safe configuration
 - Simple, intuitive API
@@ -41,12 +42,13 @@ bundle install
 ```ruby
 require "ffmpeg_core"
 
-# Load a video file
+# Load a video file or remote URL
 movie = FFmpegCore::Movie.new("input.mp4")
+# movie = FFmpegCore::Movie.new("http://example.com/video.mp4")
 
 # Get metadata
 movie.duration      # => 120.5 (seconds)
-movie.resolution    # => "1920x1080"
+movie.resolution    # => "1920x1080" (automatically swapped if rotated)
 movie.width         # => 1920
 movie.height        # => 1080
 movie.video_codec   # => "h264"
@@ -58,6 +60,8 @@ movie.valid?        # => true
 # Access detailed metadata via probe
 movie.probe.rotation      # => 90 (degrees)
 movie.probe.aspect_ratio  # => "16:9"
+movie.probe.video_profile # => "High"
+movie.probe.video_level   # => 41
 ```
 
 ### Transcoding
@@ -77,6 +81,7 @@ movie.transcode("output.mp4", {
   video_bitrate: "1000k",
   audio_bitrate: "128k",
   resolution: "1280x720",
+  crop: { width: 500, height: 500, x: 10, y: 10 }, # Crop video
   video_filter: "scale=1280:-1,transpose=1", # Resize and rotate
   audio_filter: "volume=0.5",                # Reduce volume
   preset: "slow",      # ffmpeg preset (ultrafast, fast, medium, slow, etc.)

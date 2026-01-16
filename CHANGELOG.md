@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-16
+
+### Added
+
+- **Remote Input Support:** `Movie.new` now accepts HTTP, HTTPS, RTMP, and RTSP URLs.
+- **Crop Support:** Added `crop` option to `transcode` (e.g., `crop: { width: 100, height: 100, x: 10, y: 10 }`).
+- **Advanced Metadata:** Added `video_profile` and `video_level` to `Probe`.
+- Rotation detection from `side_data_list` for better compatibility with newer video formats.
+
+### Fixed
+
+- **Rotation Geometry:** `Probe#width` and `Probe#height` now correctly swap values if the video is rotated 90 or 270 degrees.
+
 ## [0.2.0] - 2026-01-15
 
 ### Added
