@@ -48,7 +48,7 @@ RSpec.describe FFmpegCore::Transcoder do
           audio_codec: "aac",
           video_bitrate: "1000k",
           resolution: "1280x720",
-          crop: { width: 100, height: 100, x: 10, y: 10 },
+          crop: {width: 100, height: 100, x: 10, y: 10},
           video_filter: "scale=1280:-1",
           preset: "slow",
           crf: 23

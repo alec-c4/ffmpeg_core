@@ -122,7 +122,7 @@ module FFmpegCore
     end
 
     def validate_file!
-      return if path =~ %r{^(https?|rtmp|rtsp)://}
+      return if %r{^(https?|rtmp|rtsp)://}.match?(path)
 
       raise InvalidInputError, "File does not exist: #{path}" unless File.exist?(path)
       raise InvalidInputError, "File is not readable: #{path}" unless File.readable?(path)

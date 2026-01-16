@@ -13,3 +13,4 @@ gem "rspec", "~> 3.0"
 gem "standard", require: false
 gem "rubocop-rspec", require: false
 gem "rubocop-performance", require: false
+gem "lefthook", require: false

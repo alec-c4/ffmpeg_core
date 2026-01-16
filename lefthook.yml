@@ -1,0 +1,8 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: rubocop
+      glob: "*.rb"
+      run: bundle exec rubocop --force-exclusion {staged_files}
+    - name: rspec
+      run: bundle exec rspec

@@ -17,6 +17,7 @@ GEM
       reline (>= 0.4.2)
     json (2.18.0)
     language_server-protocol (3.17.0.5)
+    lefthook (2.0.15)
     lint_roller (1.1.0)
     parallel (1.27.0)
     parser (3.3.10.1)
@@ -99,6 +100,7 @@ PLATFORMS
 DEPENDENCIES
   ffmpeg_core!
   irb
+  lefthook
   rake (~> 13.0)
   rspec (~> 3.0)
   rubocop-performance
@@ -115,6 +117,7 @@ CHECKSUMS
   irb (1.16.0) sha256=2abe56c9ac947cdcb2f150572904ba798c1e93c890c256f8429981a7675b0806
   json (2.18.0) sha256=b10506aee4183f5cf49e0efc48073d7b75843ce3782c68dbeb763351c08fd505
   language_server-protocol (3.17.0.5) sha256=fd1e39a51a28bf3eec959379985a72e296e9f9acfce46f6a79d31ca8760803cc
+  lefthook (2.0.15) sha256=416a7770272e059b105d6a7a58a3c18a4b4fdafaaa0cefd139c9f5c0a55db7af
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   parallel (1.27.0) sha256=4ac151e1806b755fb4e2dc2332cbf0e54f2e24ba821ff2d3dcf86bf6dc4ae130
   parser (3.3.10.1) sha256=06f6a725d2cd91e5e7f2b7c32ba143631e1f7c8ae2fb918fc4cebec187e6a688

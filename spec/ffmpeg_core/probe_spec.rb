@@ -83,13 +83,13 @@ RSpec.describe FFmpegCore::Probe do
       it "extracts rotation" do
         expect(probe_complex.rotation).to eq(90)
       end
-      
+
       it "swaps width and height based on rotation" do
         # Rotation is 90, so width (1920) becomes height, height (1080) becomes width
         expect(probe_complex.width).to eq(1080)
         expect(probe_complex.height).to eq(1920)
       end
-      
+
       it "extracts profile and level" do
         expect(probe_complex.video_profile).to eq("High")
         expect(probe_complex.video_level).to eq(51)
