@@ -79,6 +79,21 @@ module FFmpegCore
       # Constant Rate Factor (CRF)
       cmd += ["-crf", options[:crf].to_s] if options[:crf]
 
+      # Filter Complex / Filter Graph
+      filter_graph = options[:filter_graph] || options[:filter_complex]
+      if filter_graph
+        graph_string = filter_graph.is_a?(Array) ? filter_graph.join(";") : filter_graph
+        cmd += ["-filter_complex", graph_string]
+      end
+
+      # Maps
+      maps = options[:maps] || options[:map]
+      if maps
+        Array(maps).each do |map|
+          cmd += ["-map", map]
+        end
+      end
+
       # Custom options (array of strings)
       cmd += options[:custom] if options[:custom]
 

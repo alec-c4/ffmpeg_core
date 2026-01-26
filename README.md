@@ -85,8 +85,21 @@ movie.transcode("output.mp4", {
   video_filter: "scale=1280:-1,transpose=1", # Resize and rotate
   audio_filter: "volume=0.5",                # Reduce volume
   preset: "slow",      # ffmpeg preset (ultrafast, fast, medium, slow, etc.)
-  crf: 23,             # Constant Rate Factor (0-51)
-  custom: %w[-map 0:v -map 0:a] # Custom FFmpeg flags
+  crf: 23              # Constant Rate Factor (0-51)
+})
+```
+
+### Complex Filter Graphs & Stream Mapping
+
+Use structured APIs for `-filter_complex` and `-map` to build complex pipelines without raw string hacks.
+
+```ruby
+movie.transcode("out.mp4", {
+  filter_graph: [
+    "[0:v]crop=320:240:0:0[c]",
+    "[c]scale=640:480[outv]"
+  ],
+  maps: ["[outv]", "0:a"]
 })
 ```
 
