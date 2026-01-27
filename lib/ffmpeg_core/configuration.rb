@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require "fileutils"
+require "forwardable"
+require "open3"
+
 module FFmpegCore
   # Configuration for FFmpegCore library
   class Configuration
@@ -11,7 +15,29 @@ module FFmpegCore
       @timeout = 30 # seconds
     end
 
+    def encoders
+      @encoders ||= detect_encoders
+    end
+
     private
+
+    def detect_encoders
+      return Set.new unless @ffmpeg_binary
+
+      stdout, _stderr, status = Open3.capture3(@ffmpeg_binary, "-encoders")
+      return Set.new unless status.success?
+
+      encoders = Set.new
+      stdout.each_line do |line|
+        # Match lines like: " V..... libx264 ..."
+        if line =~ /^\s*[VAS][\w.]+\s+(\w+)/
+          encoders.add($1)
+        end
+      end
+      encoders
+    rescue
+      Set.new
+    end
 
     def detect_binary(name)
       # Check common locations

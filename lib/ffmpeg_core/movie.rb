@@ -28,6 +28,7 @@ module FFmpegCore
     # @option options [Integer, Float] :frame_rate Frame rate (e.g., 30)
     # @option options [Array<String>, String] :filter_graph Complex filter graph (e.g., ["[0:v]crop=..."])
     # @option options [Array<String>, String] :maps Stream maps (e.g., ["[outv]", "0:a"])
+    # @option options [Symbol] :hwaccel Hardware acceleration (:nvenc, :vaapi, :qsv)
     # @option options [Array<String>] :custom Custom FFmpeg flags
     # @yield [Float] Progress ratio (0.0 to 1.0)
     # @return [String] Path to transcoded file

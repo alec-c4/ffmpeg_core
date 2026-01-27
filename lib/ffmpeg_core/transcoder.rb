@@ -38,6 +38,9 @@ module FFmpegCore
     def build_command
       cmd = [FFmpegCore.configuration.ffmpeg_binary]
 
+      # Apply HW Accel if requested
+      cmd += resolve_hwaccel_codec
+
       # Input file
       cmd += ["-i", input_path]
 
@@ -162,5 +165,50 @@ module FFmpegCore
         end
       end
     end
+
+    def resolve_hwaccel_codec
+      return [] unless options[:hwaccel]
+
+      current_codec = options[:video_codec] || "libx264"
+      family = detect_codec_family(current_codec)
+      return [] unless family
+
+      hw_type = options[:hwaccel].to_sym
+      target_encoder = HW_ENCODERS.dig(family, hw_type)
+
+      if target_encoder && FFmpegCore.configuration.encoders.include?(target_encoder)
+        options[:video_codec] = target_encoder
+        return HW_FLAGS[hw_type] || []
+      end
+      []
+    end
+
+    def detect_codec_family(codec)
+      case codec.to_s
+      when /x264|h264|avc/i
+        :h264
+      when /x265|hevc/i
+        :hevc
+      end
+    end
+
+    HW_FLAGS = {
+      vaapi: ["-hwaccel", "vaapi", "-hwaccel_output_format", "vaapi"],
+      qsv: ["-hwaccel", "qsv"],
+      nvenc: ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"]
+    }.freeze
+
+    HW_ENCODERS = {
+      h264: {
+        nvenc: "h264_nvenc",
+        vaapi: "h264_vaapi",
+        qsv: "h264_qsv"
+      },
+      hevc: {
+        nvenc: "hevc_nvenc",
+        vaapi: "hevc_vaapi",
+        qsv: "hevc_qsv"
+      }
+    }.freeze
   end
 end

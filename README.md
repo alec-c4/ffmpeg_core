@@ -11,6 +11,7 @@ Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 - Zero runtime dependencies
 - **Real-time progress reporting**
 - **Support for video/audio filters and quality presets**
+- **Hardware Acceleration (NVENC, VAAPI, QSV)**
 - **Remote input support (HTTP/HTTPS/RTMP/RTSP)**
 - Proper error handling with detailed context
 - Thread-safe configuration
@@ -101,6 +102,18 @@ movie.transcode("out.mp4", {
   ],
   maps: ["[outv]", "0:a"]
 })
+```
+
+### Hardware Acceleration
+
+Opt-in to hardware-accelerated encoding with automatic encoder detection and graceful fallback.
+
+```ruby
+# Automatically switches to h264_nvenc if available, falls back to libx264 otherwise
+movie.transcode("out.mp4", hwaccel: :nvenc)
+
+# Supports :nvenc, :vaapi, and :qsv
+movie.transcode("out.mp4", hwaccel: :vaapi)
 ```
 
 ### Using Filters
