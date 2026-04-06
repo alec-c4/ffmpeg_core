@@ -43,7 +43,7 @@ module FFmpegCore
       # Check common locations
       paths = ENV["PATH"].split(File::PATH_SEPARATOR)
       paths.each do |path|
-        binary = File.join(path, name)
+        binary = if Gem.win_platform? then File.join(path, name + ".exe") else File.join(path, name) end
         return binary if File.executable?(binary)
       end
 
