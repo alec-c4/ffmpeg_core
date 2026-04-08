@@ -40,23 +40,54 @@ module FFmpegCore
     end
 
     def detect_binary(name)
-      # Check common locations
-      paths = ENV["PATH"].split(File::PATH_SEPARATOR)
-      paths.each do |path|
-        binary = if Gem.win_platform? then File.join(path, name + ".exe") else File.join(path, name) end
-        return binary if File.executable?(binary)
-      end
+      binary_from_env(name) ||
+        binary_from_system_lookup(name) ||
+        binary_from_known_paths(name) ||
+        raise(BinaryNotFoundError, <<~MSG)
+          #{name} not found.
+          Install FFmpeg and ensure it's in PATH.
+          macOS: brew install ffmpeg
+          Linux: apt install ffmpeg / yum install ffmpeg
+          Windows: choco install ffmpeg or scoop install ffmpeg
+        MSG
+    end
 
-      # Homebrew locations (macOS)
-      homebrew_paths = [
-        "/opt/homebrew/bin/#{name}", # Apple Silicon
-        "/usr/local/bin/#{name}" # Intel
-      ]
-      homebrew_paths.each do |path|
-        return path if File.executable?(path)
-      end
+    # Checks FFMPEGCORE_<NAME> env variable for an explicit binary override.
+    def binary_from_env(name)
+      path = ENV["FFMPEGCORE_#{name.upcase}"]
+      path if path && File.executable?(path)
+    end
 
-      raise BinaryNotFoundError, "#{name} binary not found. Please install FFmpeg: brew install ffmpeg"
+    # Uses the OS-native `which` (Unix) or `where` (Windows) command.
+    def binary_from_system_lookup(name)
+      cmd = Gem.win_platform? ? "where #{name}" : "which #{name}"
+      stdout, status = Open3.capture2(cmd)
+      return unless status.success?
+
+      path = stdout.lines.first&.strip
+      path if path && File.executable?(path)
+    end
+
+    # Falls back to a list of well-known installation paths.
+    def binary_from_known_paths(name)
+      known_paths(name).find { |p| File.executable?(p) }
+    end
+
+    def known_paths(name)
+      if Gem.win_platform?
+        [
+          "C:/ffmpeg/bin/#{name}.exe",
+          "C:/ProgramData/chocolatey/bin/#{name}.exe",
+          "#{ENV["USERPROFILE"]}/scoop/apps/ffmpeg/current/bin/#{name}.exe"
+        ]
+      else
+        [
+          "/opt/homebrew/bin/#{name}",  # macOS ARM
+          "/usr/local/bin/#{name}",     # macOS Intel / Linux
+          "/usr/bin/#{name}",
+          "/snap/bin/#{name}"
+        ]
+      end
     end
   end
 
