@@ -11,11 +11,23 @@ Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 - Zero runtime dependencies
 - **Real-time progress reporting**
 - **Support for video/audio filters and quality presets**
-- **Hardware Acceleration (NVENC, VAAPI, QSV)**
+- **Hardware Acceleration (NVENC, VAAPI, QSV, Vulkan AV1, D3D12)**
 - **Remote input support (HTTP/HTTPS/RTMP/RTSP)**
+- **Rich metadata: chapters, subtitles, EXIF, audio properties**
+- **Video operations: cut, audio extraction, batch screenshots**
 - Proper error handling with detailed context
 - Thread-safe configuration
 - Simple, intuitive API
+
+## FFmpeg Version Requirements
+
+| Feature | Minimum FFmpeg version |
+|---|---|
+| Core transcoding, probing | Any recent version |
+| AV1 hardware encoding (Vulkan) | 8.0+ |
+| EXIF metadata parsing | 8.1+ |
+| D3D12 hardware acceleration | 8.1+ |
+| Chapter metadata (`chapters`) | Any (via `-show_chapters`) |
 
 ## Requirements
 
@@ -47,7 +59,7 @@ require "ffmpeg_core"
 movie = FFmpegCore::Movie.new("input.mp4")
 # movie = FFmpegCore::Movie.new("http://example.com/video.mp4")
 
-# Get metadata
+# Basic metadata
 movie.duration      # => 120.5 (seconds)
 movie.resolution    # => "1920x1080" (automatically swapped if rotated)
 movie.width         # => 1920
@@ -57,12 +69,32 @@ movie.audio_codec   # => "aac"
 movie.frame_rate    # => 29.97
 movie.bitrate       # => 5000 (kb/s)
 movie.valid?        # => true
+movie.has_video?    # => true
+movie.has_audio?    # => true
 
-# Access detailed metadata via probe
+# Video stream details
 movie.probe.rotation      # => 90 (degrees)
 movie.probe.aspect_ratio  # => "16:9"
 movie.probe.video_profile # => "High"
 movie.probe.video_level   # => 41
+movie.probe.pixel_format  # => "yuv420p"
+
+# Audio stream details
+movie.probe.audio_sample_rate    # => 48000
+movie.probe.audio_channels       # => 2
+movie.probe.audio_channel_layout # => "stereo"
+movie.probe.audio_streams        # => [{ "codec_type" => "audio", ... }, ...]
+
+# Subtitles and chapters
+movie.probe.subtitle_streams # => [{ "codec_name" => "subrip", ... }]
+movie.probe.chapters         # => [{ "tags" => { "title" => "Intro" }, ... }]
+
+# File-level tags and EXIF (FFmpeg 8.1+ for full EXIF support)
+movie.probe.tags  # => { "title" => "My Video", "artist" => "Author" }
+movie.probe.exif  # => { "creation_time" => "2024-06-15T14:30:00Z", ... }
+
+# Container format
+movie.probe.format_name # => "mov,mp4,m4a,3gp,3g2,mj2"
 ```
 
 ### Transcoding
@@ -104,17 +136,59 @@ movie.transcode("out.mp4", {
 })
 ```
 
+### Cutting / Trimming
+
+Lossless trim using stream copy — no re-encoding, nearly instant:
+
+```ruby
+# Trim by start time + duration
+movie.cut("clip.mp4", start_time: 30, duration: 60)
+
+# Trim by start and end time
+movie.cut("clip.mp4", start_time: 30, end_time: 90)
+```
+
+> **Note:** `-c copy` seeks to the nearest keyframe. For frame-accurate trimming, use `transcode` with `custom: ["-ss", "30", "-to", "90"]`.
+
+### Audio Extraction
+
+```ruby
+# Extract audio with automatic codec detection from file extension
+movie.extract_audio("audio.aac")
+
+# Specify codec explicitly
+movie.extract_audio("audio.mp3", codec: "libmp3lame")
+movie.extract_audio("audio.opus", codec: "libopus")
+```
+
+### Multiple Screenshots
+
+```ruby
+# Extract 5 screenshots distributed evenly across the video
+paths = movie.screenshots("thumbs/", count: 5)
+# => ["thumbs/screenshot_001.jpg", ..., "thumbs/screenshot_005.jpg"]
+```
+
 ### Hardware Acceleration
 
 Opt-in to hardware-accelerated encoding with automatic encoder detection and graceful fallback.
 
 ```ruby
-# Automatically switches to h264_nvenc if available, falls back to libx264 otherwise
-movie.transcode("out.mp4", hwaccel: :nvenc)
+# H.264 / HEVC — classic accelerators
+movie.transcode("out.mp4", hwaccel: :nvenc)           # NVIDIA CUDA
+movie.transcode("out.mp4", hwaccel: :vaapi)           # Linux VAAPI
+movie.transcode("out.mp4", hwaccel: :qsv)             # Intel Quick Sync
 
-# Supports :nvenc, :vaapi, and :qsv
-movie.transcode("out.mp4", hwaccel: :vaapi)
+# AV1 — requires FFmpeg 8.0+
+movie.transcode("out.mp4", video_codec: "libaom-av1", hwaccel: :nvenc)   # NVIDIA
+movie.transcode("out.mp4", video_codec: "libaom-av1", hwaccel: :vaapi)   # VAAPI
+movie.transcode("out.mp4", video_codec: "libaom-av1", hwaccel: :vulkan)  # Vulkan compute
+
+# D3D12 — Windows only, requires FFmpeg 8.1+
+movie.transcode("out.mp4", hwaccel: :d3d12)
 ```
+
+All accelerators gracefully fall back to software encoding if the hardware encoder is not available.
 
 ### Using Filters
 
