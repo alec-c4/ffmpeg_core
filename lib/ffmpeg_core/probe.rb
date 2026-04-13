@@ -111,6 +111,53 @@ module FFmpegCore
       streams.select { |s| s["codec_type"] == "audio" }
     end
 
+    def subtitle_streams
+      streams.select { |s| s["codec_type"] == "subtitle" }
+    end
+
+    def chapters
+      @metadata.fetch("chapters", [])
+    end
+
+    def format_name
+      @metadata.dig("format", "format_name")
+    end
+
+    def tags
+      @metadata.dig("format", "tags") || {}
+    end
+
+    def audio_sample_rate
+      audio_stream&.dig("sample_rate")&.to_i
+    end
+
+    def audio_channels
+      audio_stream&.dig("channels")
+    end
+
+    def audio_channel_layout
+      audio_stream&.dig("channel_layout")
+    end
+
+    def pixel_format
+      video_stream&.dig("pix_fmt")
+    end
+
+    def has_video?
+      !video_stream.nil?
+    end
+
+    def has_audio?
+      !audio_stream.nil?
+    end
+
+    # EXIF metadata: merges format-level and video stream tags (FFmpeg 8.1+)
+    def exif
+      format_tags = @metadata.dig("format", "tags") || {}
+      stream_tags = video_stream&.dig("tags") || {}
+      format_tags.merge(stream_tags)
+    end
+
     def valid?
       !video_stream.nil?
     end
@@ -135,6 +182,7 @@ module FFmpegCore
         "-print_format", "json",
         "-show_format",
         "-show_streams",
+        "-show_chapters",
         path
       ]
 

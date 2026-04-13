@@ -52,5 +52,47 @@ module FFmpegCore
       screenshotter = Screenshot.new(path, output_path, options)
       screenshotter.extract
     end
+
+    # Cut/trim a segment from video
+    #
+    # @param output_path [String] Path to output file
+    # @param options [Hash] Cut options
+    # @option options [Integer, Float] :start_time Start time in seconds
+    # @option options [Integer, Float] :duration Duration in seconds
+    # @option options [Integer, Float] :end_time End time in seconds (alternative to :duration)
+    # @return [String] Path to output file
+    def cut(output_path, options = {})
+      clipper = Clipper.new(path, output_path, options)
+      clipper.run
+    end
+
+    # Extract audio track from video
+    #
+    # @param output_path [String] Path to output audio file
+    # @param options [Hash] Extraction options
+    # @option options [String] :codec Audio codec (e.g., "libmp3lame", "aac")
+    # @return [String] Path to output file
+    def extract_audio(output_path, options = {})
+      extractor = AudioExtractor.new(path, output_path, options)
+      extractor.run
+    end
+
+    # Extract multiple screenshots at equal intervals
+    #
+    # @param output_dir [String] Directory to save screenshots
+    # @param count [Integer] Number of screenshots to extract (default: 5)
+    # @return [Array<String>] Paths to screenshot files
+    def screenshots(output_dir, count: 5)
+      FileUtils.mkdir_p(output_dir)
+      total = duration || 0
+      interval = total / (count + 1).to_f
+
+      (1..count).map do |i|
+        seek = (interval * i).round(2)
+        output_path = File.join(output_dir, format("screenshot_%03d.jpg", i))
+        Screenshot.new(path, output_path, seek_time: seek).extract
+        output_path
+      end
+    end
   end
 end

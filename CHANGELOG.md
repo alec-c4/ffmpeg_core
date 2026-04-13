@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-04-13
+
+### Added
+
+- **Probe — extended metadata:**
+  - `subtitle_streams` — array of subtitle streams
+  - `chapters` — file chapters (requires ffprobe `-show_chapters`)
+  - `format_name` — container format name (mp4, mkv, avi…)
+  - `tags` — file-level tags (title, artist, etc.)
+  - `audio_sample_rate` — sample rate of the first audio stream
+  - `audio_channels` — channel count
+  - `audio_channel_layout` — channel layout string (stereo, 5.1…)
+  - `pixel_format` — video pixel format (yuv420p, etc.)
+  - `has_video?` / `has_audio?` — stream presence predicates
+  - `exif` — EXIF tags merged from format and video stream tags (FFmpeg 8.1)
+- **Movie — new operations:**
+  - `cut(output, start_time:, duration:)` / `cut(output, start_time:, end_time:)` — lossless trim via `-c copy`
+  - `extract_audio(output, codec:)` — extract audio track to file
+  - `screenshots(output_dir, count:)` — extract multiple screenshots at equal intervals
+- **Hardware acceleration — AV1 and D3D12 support (FFmpeg 8.0/8.1):**
+  - AV1 via `:nvenc` (`av1_nvenc`), `:vaapi` (`av1_vaapi`), `:vulkan` (`av1_vulkan`)
+  - D3D12 via `:d3d12` (`h264_d3d12va`) for Windows
+
+### Changed
+
+- `Probe#probe!` now passes `-show_chapters` to ffprobe
+
 ## [0.4.1] - 2026-04-09
 
 ### Fixed

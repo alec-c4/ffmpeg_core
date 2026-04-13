@@ -189,25 +189,35 @@ module FFmpegCore
         :h264
       when /x265|hevc/i
         :hevc
+      when /av1|libaom/i
+        :av1
       end
     end
 
     HW_FLAGS = {
       vaapi: ["-hwaccel", "vaapi", "-hwaccel_output_format", "vaapi"],
       qsv: ["-hwaccel", "qsv"],
-      nvenc: ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"]
+      nvenc: ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"],
+      vulkan: ["-hwaccel", "vulkan"],
+      d3d12: ["-hwaccel", "d3d12va"]
     }.freeze
 
     HW_ENCODERS = {
       h264: {
         nvenc: "h264_nvenc",
         vaapi: "h264_vaapi",
-        qsv: "h264_qsv"
+        qsv: "h264_qsv",
+        d3d12: "h264_d3d12va"
       },
       hevc: {
         nvenc: "hevc_nvenc",
         vaapi: "hevc_vaapi",
         qsv: "hevc_qsv"
+      },
+      av1: {
+        nvenc: "av1_nvenc",
+        vaapi: "av1_vaapi",
+        vulkan: "av1_vulkan"
       }
     }.freeze
   end

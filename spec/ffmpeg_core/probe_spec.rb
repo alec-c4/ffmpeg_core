@@ -103,5 +103,167 @@ RSpec.describe FFmpegCore::Probe do
         expect(probe_complex.audio_streams.count).to eq(2)
       end
     end
+
+    context "with rich metadata" do
+      let(:rich_json) do
+        {
+          "format" => {
+            "format_name" => "mov,mp4,m4a,3gp,3g2,mj2",
+            "tags" => {"title" => "My Video", "artist" => "Author"}
+          },
+          "streams" => [
+            {
+              "codec_type" => "video",
+              "width" => 1280,
+              "height" => 720,
+              "pix_fmt" => "yuv420p"
+            },
+            {
+              "codec_type" => "audio",
+              "sample_rate" => "48000",
+              "channels" => 2,
+              "channel_layout" => "stereo"
+            },
+            {
+              "codec_type" => "subtitle",
+              "codec_name" => "subrip",
+              "index" => 2
+            }
+          ],
+          "chapters" => [
+            {"id" => 0, "start_time" => "0.000000", "end_time" => "60.000000",
+             "tags" => {"title" => "Intro"}},
+            {"id" => 1, "start_time" => "60.000000", "end_time" => "120.000000",
+             "tags" => {"title" => "Main"}}
+          ]
+        }.to_json
+      end
+      let(:probe_rich) { described_class.new(video_path) }
+
+      before do
+        allow(Open3).to receive(:capture3).and_return([rich_json, "", double(success?: true)])
+      end
+
+      it "extracts format_name" do
+        expect(probe_rich.format_name).to eq("mov,mp4,m4a,3gp,3g2,mj2")
+      end
+
+      it "extracts file-level tags" do
+        expect(probe_rich.tags).to eq("title" => "My Video", "artist" => "Author")
+      end
+
+      it "extracts audio_sample_rate" do
+        expect(probe_rich.audio_sample_rate).to eq(48_000)
+      end
+
+      it "extracts audio_channels" do
+        expect(probe_rich.audio_channels).to eq(2)
+      end
+
+      it "extracts audio_channel_layout" do
+        expect(probe_rich.audio_channel_layout).to eq("stereo")
+      end
+
+      it "extracts pixel_format" do
+        expect(probe_rich.pixel_format).to eq("yuv420p")
+      end
+
+      it "extracts subtitle_streams" do
+        expect(probe_rich.subtitle_streams.count).to eq(1)
+        expect(probe_rich.subtitle_streams.first["codec_name"]).to eq("subrip")
+      end
+
+      it "extracts chapters" do
+        expect(probe_rich.chapters.count).to eq(2)
+        expect(probe_rich.chapters.first.dig("tags", "title")).to eq("Intro")
+      end
+
+      it "returns true for has_video?" do
+        expect(probe_rich.has_video?).to be true
+      end
+
+      it "returns true for has_audio?" do
+        expect(probe_rich.has_audio?).to be true
+      end
+    end
+
+    context "with EXIF metadata" do
+      let(:exif_json) do
+        {
+          "format" => {
+            "tags" => {
+              "com.apple.quicktime.location.ISO6709" => "+59.9311+030.3609/",
+              "creation_time" => "2024-06-15T14:30:00.000000Z"
+            }
+          },
+          "streams" => [
+            {
+              "codec_type" => "video",
+              "width" => 3840,
+              "height" => 2160,
+              "tags" => {
+                "rotate" => "0",
+                "com.apple.quicktime.camera.framereadouttimeinmicroseconds" => "12500"
+              }
+            }
+          ],
+          "chapters" => []
+        }.to_json
+      end
+      let(:probe_exif) { described_class.new(video_path) }
+
+      before do
+        allow(Open3).to receive(:capture3).and_return([exif_json, "", double(success?: true)])
+      end
+
+      it "returns EXIF tags from format-level tags" do
+        expect(probe_exif.exif).to include("creation_time" => "2024-06-15T14:30:00.000000Z")
+      end
+
+      it "merges video stream tags into EXIF" do
+        expect(probe_exif.exif).to include(
+          "com.apple.quicktime.camera.framereadouttimeinmicroseconds" => "12500"
+        )
+      end
+
+      it "returns empty hash when no tags" do
+        allow(Open3).to receive(:capture3).and_return([
+          {"streams" => [], "chapters" => []}.to_json,
+          "",
+          double(success?: true)
+        ])
+        probe = described_class.new(video_path)
+        expect(probe.exif).to eq({})
+      end
+    end
+
+    context "with audio-only file" do
+      let(:audio_only_json) do
+        {
+          "streams" => [
+            {"codec_type" => "audio", "sample_rate" => "44100", "channels" => 2,
+             "channel_layout" => "stereo"}
+          ],
+          "chapters" => []
+        }.to_json
+      end
+      let(:probe_audio) { described_class.new(video_path) }
+
+      before do
+        allow(Open3).to receive(:capture3).and_return([audio_only_json, "", double(success?: true)])
+      end
+
+      it "returns false for has_video?" do
+        expect(probe_audio.has_video?).to be false
+      end
+
+      it "returns true for has_audio?" do
+        expect(probe_audio.has_audio?).to be true
+      end
+
+      it "returns empty chapters" do
+        expect(probe_audio.chapters).to eq([])
+      end
+    end
   end
 end

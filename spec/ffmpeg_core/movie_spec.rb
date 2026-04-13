@@ -52,4 +52,73 @@ RSpec.describe FFmpegCore::Movie do
       expect(File.size(output_path)).to be > 0
     end
   end
+
+  describe "#cut" do
+    let(:output_path) { tmp_path("cut_video.mp4") }
+
+    after { FileUtils.rm_f(output_path) }
+
+    it "cuts video with start_time and duration" do
+      movie.cut(output_path, start_time: 0, duration: 1)
+
+      expect(File.exist?(output_path)).to be true
+      expect(File.size(output_path)).to be > 0
+    end
+
+    it "cuts video with start_time and end_time" do
+      movie.cut(output_path, start_time: 0, end_time: 1)
+
+      expect(File.exist?(output_path)).to be true
+      expect(File.size(output_path)).to be > 0
+    end
+
+    it "returns output path" do
+      result = movie.cut(output_path, start_time: 0, duration: 1)
+      expect(result).to eq(output_path)
+    end
+  end
+
+  describe "#extract_audio" do
+    let(:av_path) { fixture_path("sample_video_with_audio.mp4") }
+    let(:av_movie) { described_class.new(av_path) }
+    let(:output_path) { tmp_path("audio.mp3") }
+
+    after { FileUtils.rm_f(output_path) }
+
+    it "extracts audio to file" do
+      av_movie.extract_audio(output_path)
+
+      expect(File.exist?(output_path)).to be true
+      expect(File.size(output_path)).to be > 0
+    end
+
+    it "accepts codec option" do
+      av_movie.extract_audio(output_path, codec: "libmp3lame")
+
+      expect(File.exist?(output_path)).to be true
+    end
+
+    it "returns output path" do
+      result = av_movie.extract_audio(output_path)
+      expect(result).to eq(output_path)
+    end
+  end
+
+  describe "#screenshots" do
+    let(:output_dir) { tmp_path("screenshots") }
+
+    after { FileUtils.rm_rf(output_dir) }
+
+    it "extracts multiple screenshots" do
+      paths = movie.screenshots(output_dir, count: 3)
+
+      expect(paths.count).to eq(3)
+      paths.each { |p| expect(File.exist?(p)).to be true }
+    end
+
+    it "returns array of file paths" do
+      paths = movie.screenshots(output_dir, count: 2)
+      expect(paths).to all(match(/\.jpg$/))
+    end
+  end
 end
