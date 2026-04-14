@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-14
+
+### Added
+
+- **Compositor — multi-input video composition:**
+  - New `FFmpegCore::Compositor` class for operations requiring multiple input files in a single FFmpeg command
+  - Accepts an array of local paths or remote URLs as `input_paths`
+  - `:filter_complex` option (String or Array — array elements are joined with `;`)
+  - `:maps` option for stream mapping
+  - Progress reporting via block (requires `:duration`)
+  - Typical use cases: overlay (picture-in-picture), concatenation, side-by-side (`hstack`)
+  - README updated with usage examples
+
 ## [0.5.0] - 2026-04-13
 
 ### Added

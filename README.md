@@ -15,6 +15,7 @@ Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 - **Remote input support (HTTP/HTTPS/RTMP/RTSP)**
 - **Rich metadata: chapters, subtitles, EXIF, audio properties**
 - **Video operations: cut, audio extraction, batch screenshots**
+- **Multi-input composition: overlay, concatenation, side-by-side**
 - Proper error handling with detailed context
 - Thread-safe configuration
 - Simple, intuitive API
@@ -135,6 +136,49 @@ movie.transcode("out.mp4", {
   maps: ["[outv]", "0:a"]
 })
 ```
+
+### Multi-Input Composition
+
+Use `FFmpegCore::Compositor` when you need multiple input files in a single FFmpeg command — overlay, concatenation, side-by-side, and any other `-filter_complex` operation.
+
+```ruby
+# Overlay (picture-in-picture): place overlay.mp4 on top of background.mp4
+FFmpegCore::Compositor.new(
+  ["background.mp4", "overlay.mp4"],
+  "output.mp4",
+  filter_complex: "[0:v][1:v]overlay=10:10[v]",
+  maps: ["[v]", "0:a"]
+).run
+
+# Concatenate two clips sequentially
+FFmpegCore::Compositor.new(
+  ["part1.mp4", "part2.mp4"],
+  "output.mp4",
+  filter_complex: "[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]",
+  maps: ["[v]", "[a]"]
+).run
+
+# Side-by-side (horizontal stack)
+FFmpegCore::Compositor.new(
+  ["left.mp4", "right.mp4"],
+  "output.mp4",
+  filter_complex: "[0:v][1:v]hstack[v]",
+  maps: ["[v]", "0:a"]
+).run
+
+# With progress reporting (requires :duration)
+FFmpegCore::Compositor.new(
+  ["a.mp4", "b.mp4"],
+  "output.mp4",
+  filter_complex: "[0:v][1:v]overlay[v]",
+  maps: ["[v]", "0:a"],
+  duration: 120.0
+).run do |progress|
+  puts "#{(progress * 100).round}%"
+end
+```
+
+> **Note:** Stream indices (`[0:v]`, `[1:v]`, etc.) correspond to the position of each file in the input array.
 
 ### Cutting / Trimming
 
