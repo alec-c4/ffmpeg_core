@@ -32,7 +32,7 @@ Modern Ruby wrapper for FFmpeg with clean API and proper error handling.
 
 ## Requirements
 
-- Ruby 3.2+
+- Ruby 3.3+
 - FFmpeg installed (`brew install ffmpeg` on macOS)
 
 ## Installation

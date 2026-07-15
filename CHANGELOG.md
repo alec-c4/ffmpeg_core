@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-15
+
+### Changed
+
+- **Breaking:** minimum supported Ruby version raised from 3.2 to 3.3 (`required_ruby_version` in gemspec, CI matrix). If you are on Ruby 3.2, stay on ffmpeg_core 0.6.x or upgrade Ruby.
+- Development dependencies updated (standard 1.55, simplecov 1.0, rubocop-rspec 3.10, lefthook 2.1.10, etc.)
+
 ## [0.6.0] - 2026-04-14
 
 ### Added

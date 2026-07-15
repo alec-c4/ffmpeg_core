@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A clean, well-tested FFmpeg wrapper with modern Ruby conventions, proper error handling, and zero dependencies."
   spec.homepage = "https://github.com/alec-c4/ffmpeg_core"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 3.3.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/alec-c4/ffmpeg_core"
