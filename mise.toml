@@ -1,0 +1,14 @@
+[tools]
+ruby = "4.0.6"
+
+[tasks.test]
+description = "Run the RSpec suite"
+run = "bundle exec rake spec"
+
+[tasks.lint]
+description = "Run RuboCop"
+run = "bundle exec rubocop"
+
+[tasks.release]
+description = "Build and publish the gem (rake release)"
+run = "bundle exec rake release"
