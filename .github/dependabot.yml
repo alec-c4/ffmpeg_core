@@ -1,12 +1,22 @@
 version: 2
 updates:
-  - package-ecosystem: bundler
-    directory: "/"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
-  - package-ecosystem: github-actions
-    directory: "/"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
+- package-ecosystem: bundler
+  directory: "/"
+  groups:
+    patch-and-minor:
+      update-types:
+        - minor
+        - patch
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: github-actions
+  directory: "/"
+  groups:
+    patch-and-minor:
+      update-types:
+        - minor
+        - patch
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
