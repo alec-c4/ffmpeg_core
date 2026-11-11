@@ -36,3 +36,15 @@ jobs:
 
       - name: Run the default task
         run: bundle exec rake
+
+  ci:
+    name: CI
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the existing CI jobs to succeed
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          test "$BUILD_RESULT" = success
